@@ -1,7 +1,7 @@
 
 /* IMPORT */
 
-import {spawnBin} from './utils';
+import {spawnBin,toWindowsPath,isWsl} from './utils';
 import type {Options} from './types';
 
 /* MAIN */
@@ -10,9 +10,10 @@ const open = ( path: string, options?: Options ): Promise<boolean> => {
 
   const app = options?.app;
 
-  if ( process.platform === 'win32' ) {
+  if ( process.platform === 'win32' || isWsl ) {
 
-    return spawnBin ( 'cmd.exe', ['/c', 'start', app || '', path.replace ( /[&^]/g, '^$&' )] );
+    // Empty title "" prevents a quoted first arg from being treated as the window title.
+    return spawnBin ( 'cmd.exe', ['/c', 'start', '', ...(app ? [app] : []), toWindowsPath ( path ).replace ( /[&^%]/g, '^$&' )] );
 
   } else if ( process.platform === 'linux' ) {
 
